@@ -1,24 +1,35 @@
 #ifndef _H_MYLIB_LOCK_H_
 #define _H_MYLIB_LOCK_H_
+#include <exception>
+#include <pthread.h>
 
-namespace my_lib
+namespace mylib
 {
-template <typename T>
-class MylibLock
+
+class MylibLocker
 {
 public:
-    MylibLock()
+    MylibLocker()
     {
-        Lock();
+        if(pthread_mutex_init(&mutex_, NULL) != 0)
+        {
+            throw std::exception();
+        }
     }
-    ~MylibLock()
+    ~MylibLocker()
     {
-        Unlock();
+        pthread_mutex_destroy(&mutex_);
     }
-    int Lock() { return lock_.Lock();}
-    int Unlock() { return lock_.Unlock();}
+    bool Lock()
+    { 
+        return pthread_mutex_lock(mutex_) == 0;
+    }
+    bool Unlock() 
+    { 
+        return pthread_mutex_unlock(mutex_) == 0;
+    }
 private:
-    T lock_;
+    pthread_mutex_t mutex_;
 };
 }
 #endif
