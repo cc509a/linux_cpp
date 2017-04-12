@@ -1,24 +1,27 @@
-
-#
+# date: 2017-04-13
 #设置最低版本号
-cmake_minimum_required(VERSION 2.8)
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 #设置工程名
-project(my_http)
+PROJECT(my_http)
 
-message(${PROJECT_SOURCE_DIR})
+MESSAGE(${PROJECT_SOURCE_DIR})
 #设置cpp文件路径
-aux_source_directory(${PROJECT_SOURCE_DIR} source_cpp)
+AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR} source_cpp)
+
 #设置头文件路径
-set(inc_path ${PROJECT_SOURCE_DIR}) 
+SET(inc_path ${PROJECT_SOURCE_DIR}) 
+#MESSAGE("cpp file:${source_cpp}")
+SET(mylib_path ${PROJECT_SOURCE_DIR}/../mylib/)
+#MESSAGE(${mylib_path})
 
-message("cpp file:${source_cpp}")
+#包含头文件
+INCLUDE_DIRECTORIES(${mylib_path})
+INCLUDE_DIRECTORIES(${inc_path})
 
-#include()
-
-include_directories(${PROJECT_SOURCE_DIR}../mylib/)
-
-add_executable(my_http ${source_cpp})
-
-target_link_libraries(my_http)
-
-set_target_properties(my_http PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")
+#可执行文件
+ADD_EXECUTABLE(my_http ${source_cpp})
+#链接库
+TARGET_LINK_LIBRARIES(my_http pthread)
+#生成目标
+SET_TARGET_PROPERTIES(my_http PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}")

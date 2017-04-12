@@ -22,11 +22,11 @@ public:
     }
     bool Lock()
     { 
-        return pthread_mutex_lock(mutex_) == 0;
+        return pthread_mutex_lock(&mutex_) == 0;
     }
     bool Unlock() 
     { 
-        return pthread_mutex_unlock(mutex_) == 0;
+        return pthread_mutex_unlock(&mutex_) == 0;
     }
 private:
     pthread_mutex_t mutex_;
