@@ -60,7 +60,48 @@ public:
         INTERNAL_ERROR,
         CLOSED_CONNECTION
     };
+
+    enum LINE_STATUS
+    {
+        LINE_OK = 0,
+        LINE_BAD,
+        LINE_OPEN
+    };
+
+public:
+    HttpConn() = default;
+    ~HttpConn() = default;
+
+public:
+    void init(int sockfd, const sockaddr_in& addr);
+    /*关闭连接*/
+    void close_conn(bool real_close = true);
+    /*处理请求*/
+    void process();
+    /*非阻塞读*/
+    bool read();
+    /*非阻塞写*/
+    bool write();
+private:
+    void init();
+
+    HTTP_CODE process_read();
+
+    bool process_write(HTTP_CODE ret);
+
+    HTTP_CODE parse_request_line(char* text);
+
+    HTTP_CODE parse_headers(char* text);
+
+    HTTP_CODE parse_content(char* text);
+
+    HTTP_CODE do_request();
+
+    char* get_line() { return read_buf_ + start_line_;}
+
+    LINE_STATUS parse_line();
     
+
 
 };
 
