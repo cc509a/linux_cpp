@@ -38,3 +38,26 @@ void removefd(int epollfd, int fd)
 	epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
 	close(fd);
 }
+
+
+HttpConn::LINE_STATUS HttpConn::parse_line()
+{
+	char temp;
+	for(; checked_idx_ < read_idx_; ++ checked_idx_)
+	{
+		temp = read_buf_[checked_idx_];
+		if(temp == '\r')
+		{
+			if((checked_idx_ + 1) == read_idx_)
+			{
+				return LINE_OPEN;
+			}
+			else if (read_buf_[checked_idx_+1] == '\n')
+			{
+				/* code */
+				read_buf
+			}
+
+		}
+	}
+}

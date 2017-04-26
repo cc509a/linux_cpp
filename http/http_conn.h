@@ -115,7 +115,7 @@ private:
 
     char    read_buf_[READ_BUFFER_SIZE];
     int     read_idx_;
-    int     checked_idx;
+    int     checked_idx_;
     int     start_line_;
 
     char    write_buf_[WRITE_BUFFER_SIZE];
