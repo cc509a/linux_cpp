@@ -39,7 +39,7 @@ void removefd(int epollfd, int fd)
 	close(fd);
 }
 
-
+/*状态机*/
 HttpConn::LINE_STATUS HttpConn::parse_line()
 {
 	char temp;
@@ -55,9 +55,141 @@ HttpConn::LINE_STATUS HttpConn::parse_line()
 			else if (read_buf_[checked_idx_+1] == '\n')
 			{
 				/* code */
-				read_buf
+				read_buf_[checked_idx_++] ='\0';
+				read_buf_[checked_idx_++] ='\0';
+				return LINE_OK;
 			}
-
+			return LINE_BAD;
+		}
+		else if(temp == '\n')
+		{
+			if((checked_idx_ > 1) && (read_buf_[checked_idx_ - 1] == '\r')
+			{
+				read_buf_[checked_idx_-1] ='\0';
+				read_buf_[checked_idx_++] ='\0';
+				return LINE_OK;
+			}
+			return LINE_BAD;
 		}
 	}
+	return LINE_OPEN;
 }
+
+/*读取客户端数据*/
+bool HttpConn::read()
+{
+	if(read_idx_ > READ_BUFFER_SIZE)
+	{
+		return false;
+	}
+	int bytes_read = 0;
+	for(;;)
+	{
+		bytes_read = recv(sockfd_, read_buf_ + read_idx_, READ_BUFFER_SIZE - read_idx_, 0);
+		if(bytes_read == -1)
+		{
+			int errno = bytes_read;
+			if(errno == EAGIN || errno == EWOULDBLOCK)
+			{
+				break;
+			}
+			return false;
+		}
+		else if(bytes_read == 0)
+		{
+			return false;
+		}
+		read_idx_ += bytes_read;
+	}
+	return true;
+}
+
+HttpConn::HTTP_CODE HttpConn::parse_request_line(char* text)
+{
+	url_ = strpbrk(text, "\t");
+	if(!url_)
+	{
+		return BAD_REQUEST;
+	}
+	*url_++ = '\0';
+
+	char* method = text;
+	if(strcasecmp(method, "GET") == 0)
+	{
+		method_ = GET;
+	}
+	else
+	{
+		return BAD_REQUEST;
+	}
+	url_ += strspn(url_, "\t");
+	version_ = strpbrk(url_, "\t");
+	if(!version_)
+	{
+		return BAD_REQUEST;
+	}
+	version_ += strspn(version_, "\t");
+	if(strcasecmp(version_, "HTTP/1.1") !=0)
+	{
+		return BAD_REQUEST;
+	}
+	if(strcasecmp(url_, "http://", 7) == 0)
+	{
+		url_ += 7;
+		url_ = strchar(url_, '/');
+	}
+	if(!url_ || url_[0] != '/')
+	{
+		return BAD_REQUEST;
+	}
+	checked_state_ = CHECK_STATE_HEADER;
+	return NO_REQUEST;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

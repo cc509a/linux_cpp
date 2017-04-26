@@ -121,7 +121,7 @@ private:
     char    write_buf_[WRITE_BUFFER_SIZE];
     int     write_idx;
 
-    CHECK_STATE check_state_;
+    CHECK_STATE checked_state_;
     METHOD      method_;
 
     /*请求文件路径, doc_root + url*/
