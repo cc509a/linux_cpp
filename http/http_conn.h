@@ -114,9 +114,9 @@ private:
     sockaddr_in  address_;
 
     char    read_buf_[READ_BUFFER_SIZE];
-    int     read_idx_;
-    int     checked_idx_;
-    int     start_line_;
+    uint32_t     read_idx_;
+    uint32_t     checked_idx_;
+    uint32_t     start_line_;
 
     char    write_buf_[WRITE_BUFFER_SIZE];
     int     write_idx;
@@ -129,7 +129,7 @@ private:
     
     char* url_;
     /*协议版本号*/
-    char  version_;
+    char*  version_;
     char* host_;
     int   content_length_;
     /*是否保持连接*/

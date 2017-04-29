@@ -1,7 +1,9 @@
 # date: 2017-04-13
 #设置最低版本号
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+
+ADD_COMPILE_OPTIONS(-std=c++14 -g -Wall -O2 )
 #设置工程名
 PROJECT(my_http)
 
@@ -10,14 +12,14 @@ PROJECT(my_http)
 AUX_SOURCE_DIRECTORY(${PROJECT_SOURCE_DIR} source_cpp)
 
 #设置头文件路径
-SET(inc_path ${PROJECT_SOURCE_DIR}) 
+#SET(inc_path ${PROJECT_SOURCE_DIR}) 
 #MESSAGE("cpp file:${source_cpp}")
 SET(mylib_path ${PROJECT_SOURCE_DIR}/../mylib/)
 #MESSAGE(${mylib_path})
 
 #包含头文件
 INCLUDE_DIRECTORIES(${mylib_path})
-INCLUDE_DIRECTORIES(${inc_path})
+#INCLUDE_DIRECTORIES(${inc_path})
 
 #可执行文件
 ADD_EXECUTABLE(my_http ${source_cpp})
