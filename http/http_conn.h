@@ -52,7 +52,7 @@ public:
     enum HTTP_CODE
     {
         NO_REQUEST,
-        GET_REQEST,
+        GET_REQUEST,
         BAD_REQUEST,
         NO_RESOURCE,
         FORBIDDEN_REQUEST,
@@ -69,8 +69,8 @@ public:
     };
 
 public:
-    HttpConn() = default;
-    ~HttpConn() = default;
+    HttpConn() {}
+    virtual ~HttpConn() = default;
 
 public:
     void init(int sockfd, const sockaddr_in& addr);
@@ -119,13 +119,13 @@ private:
     uint32_t     start_line_;
 
     char    write_buf_[WRITE_BUFFER_SIZE];
-    int     write_idx;
+    uint32_t     write_idx_;
 
     CHECK_STATE checked_state_;
     METHOD      method_;
 
     /*请求文件路径, doc_root + url*/
-    char  read_file_[FILE_NAME_LEN];
+    char  real_file_[FILE_NAME_LEN];
     
     char* url_;
     /*协议版本号*/
