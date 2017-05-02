@@ -4,7 +4,7 @@
 const char * ok_title = "OK";
 
 const char * error_400_title = "Bad Request";
-const char * error_400_from = "your req\n";
+const char * error_400_from = "your request is Bad Request \n";
 
 const char * error_403_title = "Forbiddn";
 const char * error_403_from = "you not have permisson\n";
@@ -15,7 +15,7 @@ const char * error_404_from = "request file not found";
 const char * error_500_from = "server error \n";
 const char * error_500_title = "server error";
 
-const char * doc_root = "/var/www/html";
+const char * doc_root = "/home/rugang/Documents/www/";
 
 #define CHECK_CHAR_PTR(ptr) \
 if ((ptr) == nullptr) \
@@ -90,6 +90,7 @@ void HttpConn::init()
 
 void HttpConn::close_conn(bool real_close)
 {
+    std::cout<<"close_conn"<<std::endl;
     if(real_close && (sockfd_ = -1))
     {
         removefd(epollfd_, sockfd_);
@@ -99,34 +100,42 @@ void HttpConn::close_conn(bool real_close)
 }
 
 
-/*状态机*/
+/*从状态机*/
 HttpConn::LINE_STATUS HttpConn::parse_line()
 {
+    std::cout<<"parse_line"<<std::endl;
 	char temp;
 	for(; checked_idx_ < read_idx_; ++ checked_idx_)
 	{
+        //printf("checked_idx_:%u,read_idx_:%u \n", checked_idx_, read_idx_);
 		temp = read_buf_[checked_idx_];
+        //std::cout<< temp << std::endl;
 		if(temp == '\r')
 		{
+            printf("rrrrrr %d\n", read_buf_[checked_idx_+1]);
 			if((checked_idx_ + 1) == read_idx_)
 			{
+                printf("line open\n");
 				return LINE_OPEN;
 			}
 			else if (read_buf_[checked_idx_+1] == '\n')
 			{
 				/* code */
+                printf("read buf ++");
 				read_buf_[checked_idx_++] ='\0';
-				read_buf_[checked_idx_++] ='\0';
+			    read_buf_[checked_idx_++] ='\0';
 				return LINE_OK;
 			}
 			return LINE_BAD;
 		}
 		else if(temp == '\n')
 		{
+            printf("nnnnn \n");
 			if((checked_idx_ > 1) && (read_buf_[checked_idx_ - 1] == '\r'))
 			{
 				read_buf_[checked_idx_-1] ='\0';
 				read_buf_[checked_idx_++] ='\0';
+                //
 				return LINE_OK;
 			}
 			return LINE_BAD;
@@ -138,6 +147,7 @@ HttpConn::LINE_STATUS HttpConn::parse_line()
 /*读取客户端数据*/
 bool HttpConn::read()
 {
+    std::cout<<"read"<<std::endl;
 	if(read_idx_ > READ_BUFFER_SIZE)
 	{
 		return false;
@@ -146,9 +156,11 @@ bool HttpConn::read()
 	for(;;)
 	{
 		bytes_read = recv(sockfd_, read_buf_ + read_idx_, READ_BUFFER_SIZE - read_idx_, 0);
+        //printf("%s\n", read_buf_);
+        printf("recv request bytes_read:%d, read_idx_:%u\n", bytes_read, read_idx_);
 		if(bytes_read == -1)
 		{
-			//int errno = bytes_read;
+			
 			if(errno == EAGAIN || errno == EWOULDBLOCK)
 			{
 				break;
@@ -167,14 +179,18 @@ bool HttpConn::read()
 /*解析HTTP请求，获得请求方法*/
 HttpConn::HTTP_CODE HttpConn::parse_request_line(char* text)
 {
-	url_ = strpbrk(text, "\t");
-	if(!url_)
+    printf("parse_request_line text:%s\n", text);
+	url_ = strpbrk(text, " \t");
+	if(url_ == nullptr)
 	{
+        printf("bad request \n");
 		return BAD_REQUEST;
 	}
 	*url_++ = '\0';
 
 	char* method = text;
+
+    printf("method:%s url:%s \n", method, url_);
 	if(strcasecmp(method, "GET") == 0)
 	{
 		method_ = GET;
@@ -183,14 +199,14 @@ HttpConn::HTTP_CODE HttpConn::parse_request_line(char* text)
 	{
 		return BAD_REQUEST;
 	}
-	url_ += strspn(url_, "\t");
-	version_ = strpbrk(url_, "\t");
+	url_ += strspn(url_, " \t");
+	version_ = strpbrk(url_, " \t");
 	if(!version_)
 	{
 		return BAD_REQUEST;
 	}
     *version_++ = '\0';
-	version_ += strspn(version_, "\t");
+	version_ += strspn(version_, " \t");
 	if(strcasecmp(version_, "HTTP/1.1") !=0)
 	{
 		return BAD_REQUEST;
@@ -211,6 +227,7 @@ HttpConn::HTTP_CODE HttpConn::parse_request_line(char* text)
 /*解析头部*/
 HttpConn::HTTP_CODE HttpConn::parse_headers(char* text)
 {
+    std::cout<<"parse_headers"<<std::endl;
     if(text[0] == '\0')
     {
         if(content_length_ !=0)
@@ -223,7 +240,7 @@ HttpConn::HTTP_CODE HttpConn::parse_headers(char* text)
     else if(strncasecmp(text, "Connection:", 11) == 0)
     {
         text += 11;
-        text += strspn(text, "\t");
+        text += strspn(text, " \t");
         if(strcasecmp(text, "keep-alive") == 0)
         {
             linger_ = true;
@@ -233,14 +250,14 @@ HttpConn::HTTP_CODE HttpConn::parse_headers(char* text)
     else if(strncasecmp(text, "Conten-Length:", 15) == 0)
     {
         text += 15;
-        text += strspn(text, "\t");
+        text += strspn(text, " \t");
         content_length_ = atol(text);
     }
     /*处理host头部字段*/
     else if(strncasecmp(text, "Host:",5) ==0)
     {
         text += 5;
-        text += strspn(text, "\t");
+        text += strspn(text, " \t");
         host_ = text;
     }
     else
@@ -252,6 +269,7 @@ HttpConn::HTTP_CODE HttpConn::parse_headers(char* text)
 
 HttpConn::HTTP_CODE HttpConn::parse_content(char *text)
 {
+    std::cout<<"parse_content"<<std::endl;
     if(read_idx_ >= (content_length_ + checked_idx_))
     {
         text[content_length_] = '\0';
@@ -263,12 +281,14 @@ HttpConn::HTTP_CODE HttpConn::parse_content(char *text)
 /*主机状态机*/
 HttpConn::HTTP_CODE HttpConn::process_read()
 {
-    LINE_STATUS line_status =LINE_OK;
+    std::cout<<"process_read"<<std::endl;
+    LINE_STATUS line_status = LINE_OK;
     HTTP_CODE ret = NO_REQUEST;
     char* text = nullptr;
 
-    while(((checked_state_ == CHECK_STATE_CONTENT) && (line_status == LINE_OK)) || ((line_status == parse_line()) == LINE_OK))
+    while(((checked_state_ == CHECK_STATE_CONTENT) && (line_status == LINE_OK)) || ((line_status = parse_line()) == LINE_OK))
     {
+        printf("line_ok\n");
         text = get_line();
         start_line_ = checked_idx_;
         printf("got 1 http line:%s\n", text);
@@ -317,6 +337,7 @@ HttpConn::HTTP_CODE HttpConn::process_read()
 }
 HttpConn::HTTP_CODE HttpConn::do_request()
 {
+    std::cout<<"do_request"<<std::endl;
     strcpy(real_file_, doc_root);
     int len = strlen(doc_root);
     strncpy(real_file_ + len, url_, FILE_NAME_LEN - len -1);
@@ -342,7 +363,8 @@ HttpConn::HTTP_CODE HttpConn::do_request()
  
 /*内存映射操作*/
 void HttpConn::unmap()
-{
+{   
+    std::cout<<"unmap"<<std::endl;
     if(file_address_)
     {
         munmap(file_address_, file_stat_.st_size);
@@ -353,6 +375,7 @@ void HttpConn::unmap()
 
 bool HttpConn::write()
 {
+    std::cout<<"write"<<std::endl;
     int temp = 0;
     int bytes_have_send = 0;
     int bytes_to_send = write_idx_;
@@ -453,6 +476,7 @@ bool HttpConn::add_content(const char * content)
 
 bool HttpConn::process_write(HTTP_CODE ret)
 {
+    std::cout<<"process_write"<<std::endl;
     switch(ret)
     {
         case INTERNAL_ERROR:
@@ -529,9 +553,10 @@ bool HttpConn::process_write(HTTP_CODE ret)
     iv_count_ = 1;
     return true;
 }
-
+/*处理客户端请求*/
 void HttpConn::process()
 {
+    std::cout<<"process"<<std::endl;
     HTTP_CODE read_ret = process_read();
     if(read_ret == NO_REQUEST)
     {
@@ -545,43 +570,4 @@ void HttpConn::process()
     }
     modfd(epollfd_, sockfd_, EPOLLOUT);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
