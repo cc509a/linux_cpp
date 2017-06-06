@@ -20,6 +20,9 @@
 #include <errno.h>
 #include "mylib_lock.h"
 #include "mylib_sem.h"
+#include "mylib_ini.h"
+
+extern mylib::MylibIni config;
 
 class HttpConn
 {
@@ -69,7 +72,11 @@ public:
     };
 
 public:
-    HttpConn() {}
+    HttpConn() 
+    {
+        www_path = config.get("srv","doc_root","/home/rugang/Documents/www1/");
+        //printf("%s\n", www_path.c_str());
+    }
     virtual ~HttpConn() = default;
 
 public:
@@ -138,6 +145,7 @@ private:
     struct stat file_stat_;
     struct iovec iv_[2]; 
     int    iv_count_;
+    std::string www_path;
 };
 
 

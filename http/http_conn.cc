@@ -16,7 +16,7 @@ const char * error_500_title = "Server Error";
 const char * error_500_from = "server error \n";
 
 
-const char * doc_root = "/home/rugang/Documents/www/";
+//const char * doc_root = "/home/rugang/Documents/www/";
 
 #define CHECK_CHAR_PTR(ptr) \
 if ((ptr) == nullptr) \
@@ -339,6 +339,7 @@ HttpConn::HTTP_CODE HttpConn::process_read()
 HttpConn::HTTP_CODE HttpConn::do_request()
 {
     std::cout<<"do_request"<<std::endl;
+    const char* doc_root = www_path.c_str();
     strcpy(real_file_, doc_root);
     int len = strlen(doc_root);
     strncpy(real_file_ + len, url_, FILE_NAME_LEN - len -1);

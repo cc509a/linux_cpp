@@ -68,7 +68,7 @@ private:
           return ERR_SYS_STAT;
       }
       Clear();
-      uint32_t length = file_stat.st_size == 0 ? 1024 : file_stat.st_size + 1;
+      size_t length = file_stat.st_size == 0 ? 1024 : file_stat.st_size + 1;
       
       buffer_ = (char*)malloc(length);
       if(buffer_ == nullptr)
@@ -82,8 +82,8 @@ private:
       {
         return ERR_SYS_FOPEN;
       }
-
-      if(fread(buffer_, 1, length -1, fp) < 0)
+      size_t read_ret = fread(buffer_, 1, length -1, fp);
+      if( read_ret < 0)
       {
           return ERR_SYS_FREAD;
       }

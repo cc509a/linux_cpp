@@ -3,7 +3,7 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
 
-set(CMAKE_CXX_COMPILER "/usr/local/bin/g++")
+#set(CMAKE_CXX_COMPILER "/usr/local/bin/g++")
 ADD_COMPILE_OPTIONS(-std=c++14 -g -Wall -O2 )
 #设置工程名
 PROJECT(my_http)
