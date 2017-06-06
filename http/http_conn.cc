@@ -4,16 +4,17 @@
 const char * ok_title = "OK";
 
 const char * error_400_title = "Bad Request";
-const char * error_400_from = "your request is Bad Request \n";
+const char * error_400_from = "your request is bad request \n";
 
 const char * error_403_title = "Forbiddn";
 const char * error_403_from = "you not have permisson\n";
 
-const char * error_404_title = "not found";
+const char * error_404_title = "Not Found";
 const char * error_404_from = "request file not found";
 
+const char * error_500_title = "Server Error";
 const char * error_500_from = "server error \n";
-const char * error_500_title = "server error";
+
 
 const char * doc_root = "/home/rugang/Documents/www/";
 

@@ -17,14 +17,14 @@ class MylibFile
 {
 public:
     explicit MylibFile(const std::string& file)
-        :buffer_(NULL), file_(file) {}
+        :buffer_(nullptr), file_(file) {}
 
     ~MylibFile()
     {
      Clear();
     }
 
-    int set_file(const std::string& file)
+    void set_file(const std::string& file)
     {
         file_ = file;
         Clear();
@@ -32,16 +32,16 @@ public:
 
     int Read(std::string& text)
     {
-      if(Read() != SUCCESS)
+      if(Read() != 0)
       {
         return -1;
       }
       text = buffer_;
-      return SUCCESS;
+      return 0;
     }
-    int Read(std::vector<std::string> text)
+    int Read(std::vector<std::string>& text)
     {
-        if(Read() != SUCCESS)
+        if(Read() != 0)
         {
             return -1;
         }
@@ -51,15 +51,15 @@ public:
             text.push_back(p);
             p = strtok(NULL,"\r\n");
         }
-        return SUCCESS;
+        return 0;
     }
 
 private:
     int Read()
     {
-      int ret = SUCCESS;
+      int ret = 0;
 
-      MylibLock<MylibPthreadMutex> lock;
+      //MylibLock<MylibPthreadMutex> lock;
 
       struct stat file_stat;
       ret = stat(file_.c_str(), &file_stat);
@@ -68,8 +68,14 @@ private:
           return ERR_SYS_STAT;
       }
       Clear();
-      uint32_t length = file_stat.st_szie == 0 ? 1024 : file_stat.st_szie + 1;
-      buffer_ = new char[length];
+      uint32_t length = file_stat.st_size == 0 ? 1024 : file_stat.st_size + 1;
+      
+      buffer_ = (char*)malloc(length);
+      if(buffer_ == nullptr)
+      {
+        return -2;
+      }
+      memset(buffer_, 0, length);
 
       FILE* fp = fopen(file_.c_str(), "rb");
       if (fp == nullptr)

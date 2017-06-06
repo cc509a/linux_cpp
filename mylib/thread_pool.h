@@ -23,7 +23,7 @@ private:
     void run();
 private:
     int             thread_num_;    //线程数量
-    int             max_req_;       //队列中最大请求数
+    size_t          max_req_;       //队列中最大请求数
     pthread_t*      threads_;       //描述线程池的数组
     std::list<T*>   worker_queue_;  //请求队列
     MylibLocker     locker_;        //保护队列锁
