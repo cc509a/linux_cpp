@@ -1,10 +1,10 @@
 # date: 2017-04-13
 #设置最低版本号
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 #set(CMAKE_CXX_COMPILER "/usr/local/bin/g++")
-ADD_COMPILE_OPTIONS(-std=c++14 -g -Wall -O2 )
+ADD_COMPILE_OPTIONS(-std=c++11 -g -Wall -O2 )
 #设置工程名
 PROJECT(my_http)
 
