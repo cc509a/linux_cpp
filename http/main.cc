@@ -36,11 +36,11 @@ mylib::MylibIni config;
 int main(int argc, char * argv[])
 {
 
-    if(daemon(1, 1) != 0)
-    {
-        printf("create deamon fail \n");
-        return -2;
-    }
+    // if(daemon(1, 1) != 0)
+    // {
+    //     printf("create deamon fail \n");
+    //     return -2;
+    // }
 
     if(argc <= 1)
     {
