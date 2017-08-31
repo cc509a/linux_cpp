@@ -5,18 +5,16 @@
 #include <memory.h>
 #include <errno.h>
 #include <unistd.h>
-#define BUF_SIZE 1024
+#define BUF_SIZE 512
 int main(int argc, char * argv[])
 {
 
-
-
-	if (argc < 3)
+	if (argc < 2)
 	{
 		std::cout<<"params error"<<std::endl;
+		return -1;
 	}
-	const char *ip = argv[1];
-	int port = atoi(argv[2]);
+	int port = atoi(argv[1]);
 
 	int sock_fd = socket(PF_INET, SOCK_STREAM, 0);
 	if(sock_fd == -1)
@@ -27,15 +25,19 @@ int main(int argc, char * argv[])
 	sockaddr_in * addr = new sockaddr_in();
 	memset(addr, 0, sizeof(sockaddr_in));
 	addr->sin_family = AF_INET;
-	inet_pton(AF_INET, ip, &(addr->sin_addr));
+	addr->sin_addr.s_addr = htonl(INADDR_ANY);
 	addr->sin_port = htons(port);
-	std::cout<<"sizeof sockaddr_in"<< sizeof(sockaddr_in)<<std::endl;
+	//inet_pton(AF_INET, ip, &(addr->sin_addr));
 
 	ret = bind(sock_fd, (struct sockaddr *)addr, sizeof(sockaddr));
 	if(ret != 0)
 	{
 		printf("bind error\n");
 		return -2;
+	}
+	else
+	{
+		puts("binding ...");
 	}
 
 	int backlog = 5;
@@ -44,6 +46,10 @@ int main(int argc, char * argv[])
 	{
 		printf("listen error\n");
 		return -2;
+	}
+	else
+	{
+		puts("listening ...");
 	}
 
 
@@ -55,18 +61,21 @@ int main(int argc, char * argv[])
 		if(connfd < 0)
 		{
 			printf("error:%d\n", errno);
+			continue;
 		}
 		else
 		{
 			char buf[BUF_SIZE];
 			memset(buf, 0, sizeof(buf));
-			ret = recv(connfd, buf, BUF_SIZE-1, 0);
-			//std::cout<<"recv message:" << buf<<std::endl;
-			printf("recv message:%s\n", buf);
+			while(recv(connfd, buf, BUF_SIZE-1, 0))
+			{
+				printf("recv message:%s\n", buf);
+				send(connfd, buf, strlen(buf), 0);
+			}
 			close(connfd);
 		}
-		close(sock_fd);
 	}
+	close(sock_fd);
 	delete addr;
 	return 0;
 }
