@@ -13,20 +13,21 @@
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+
+int connect_host[10];
+int conn_num = 0;
+
+
 static void * handle_request(void *argv)
 {
-	
-	int sock_fd = *((int*)argv);
+	printf("%s\n","handle_request run");
 	int max_fd = -1;
-	struct timeval time_out;
+	struct timeval time_out; //阻塞1秒后超时
 	time_out.tv_sec = 1;
 	time_out.tv_usec = 0;
 	fd_set scanfd;
 
-	int connect_host[10];
-	int conn_num = 0;
-
-	int err = -1;
+	int ret = -1;
 	for(;;)
 	{
 		max_fd = -1;
@@ -36,61 +37,80 @@ static void * handle_request(void *argv)
 			if(connect_host[i] != -1)
 			{
 				FD_SET(connect_host[i], &scanfd);
-				if(nax_fd < connect_host[i])
+				if(max_fd < connect_host[i])
 				{
 					max_fd = connect_host[i];
 				}
 			}
+		}
+		//printf("max_fd:%d\n", max_fd);
+		ret = select(max_fd+1, &scanfd, NULL, NULL, &time_out);
+		//printf("ret%d\n", ret);
+		if(ret > 0 && conn_num > 0)
+		{
+			for( int i = 0; i < 10; ++i)
+			{
+				if((connect_host[i] != -1)&& FD_ISSET(connect_host[i], &scanfd))
+				{
 
+					int connfd = connect_host[i];
+					printf("connect_host%d\n", connfd);
+					char buf[BUF_SIZE];
+					memset(buf, 0, sizeof(buf));
+					while(recv(connfd, buf, BUF_SIZE-1, 0))
+					{
+						//recv(connfd, buf, BUF_SIZE-1, 0);
+						printf("recv message:%s\n", buf);
+						send(connfd, buf, strlen(buf), 0);
+					}
+					close(connect_host[i]);
+					connect_host[i] = -1;
+					--conn_num;
+				}
+			}
 		}
 	}
+	return nullptr;
+}
 
+
+static void * handle_connect(void* argv)
+{
+	int sock_fd = *((int*)argv);
+	printf("%s\n", "handle_connect run");
 	struct sockaddr_in client;
 	socklen_t  clent_addr_len = sizeof(client);
-
 	while(true)
 	{
-		pthread_mutex_lock(&lock);
 		int connfd = accept(sock_fd, (struct sockaddr*)&client,  &clent_addr_len);
-		pthread_mutex_unlock(&lock);
+		printf("connfd:%d\n", connfd);
 		if(connfd < 0)
 		{
 			printf("error:%d\n", errno);
 			continue;
 		}
-		else
+		for(int i = 0; i <10; ++i)
 		{
-			char buf[BUF_SIZE];
-			memset(buf, 0, sizeof(buf));
-			while(recv(connfd, buf, BUF_SIZE-1, 0))
+			if(connect_host[i] ==-1)
 			{
-				printf("recv message:%s\n", buf);
-				send(connfd, buf, strlen(buf), 0);
+				connect_host[i] = sock_fd;
+				++conn_num;
+				break;
 			}
-			close(connfd);
+
 		}
 	}
-	return 0;
-}
-
-
-static void  handle_connect(int sock_fd)
-{
-	std::vector<pthread_t> pool(5);
-	for(size_t i = 0; i < pool.size(); ++i)
-	{
-		pthread_create(&pool[i], NULL, handle_request, &sock_fd);
-	}
-	for(size_t i = 0; i < pool.size(); ++i)
-	{
-		pthread_join(pool[i], NULL);
-	}
+	return NULL;
 }
 
 
 
 int main(int argc, char * argv[])
 {
+	for(int i = 0;i <10; ++i)
+	{
+		connect_host[i] = -1;
+	}
 
 	if (argc < 2)
 	{
