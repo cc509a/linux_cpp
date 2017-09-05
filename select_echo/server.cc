@@ -23,7 +23,7 @@ static void * handle_request(void *argv)
 	printf("%s\n","handle_request run");
 	int max_fd = -1;
 	struct timeval time_out; //阻塞1秒后超时
-	time_out.tv_sec = 1;
+	time_out.tv_sec = 5;
 	time_out.tv_usec = 0;
 	fd_set scanfd;
 
@@ -36,6 +36,7 @@ static void * handle_request(void *argv)
 		{
 			if(connect_host[i] != -1)
 			{
+				//printf("connect_host[i]:%d\n", connect_host[i]);
 				FD_SET(connect_host[i], &scanfd);
 				if(max_fd < connect_host[i])
 				{
@@ -45,7 +46,8 @@ static void * handle_request(void *argv)
 		}
 		//printf("max_fd:%d\n", max_fd);
 		ret = select(max_fd+1, &scanfd, NULL, NULL, &time_out);
-		//printf("ret%d\n", ret);
+		//printf("ret%d, conn_num%d\n", ret,conn_num);
+		//sleep(3);
 		if(ret > 0 && conn_num > 0)
 		{
 			for( int i = 0; i < 10; ++i)
@@ -93,7 +95,7 @@ static void * handle_connect(void* argv)
 		{
 			if(connect_host[i] ==-1)
 			{
-				connect_host[i] = sock_fd;
+				connect_host[i] = connfd;
 				++conn_num;
 				break;
 			}
